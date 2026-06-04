@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Report Generator</title>
+</head>
+<body>
+
+<h2>Generate Report</h2>
+
+<input id="topic"
+       placeholder="Enter topic">
+
+<button onclick="generate()">
+    Generate
+</button>
+
+<pre id="result"></pre>
+
+<script>
+
+    async function generate() {
+
+    const topic =
+        document.getElementById("topic").value;
+
+    const response = await fetch(
+        `http://localhost:8080/reports?topic=${topic}`
+    );
+
+    const text = await response.text();
+
+    document.getElementById("result")
+        .innerText = text;
+}
+</script>
+
+</body>
+</html>
