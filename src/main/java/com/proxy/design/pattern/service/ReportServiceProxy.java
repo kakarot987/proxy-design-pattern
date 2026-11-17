@@ -54,6 +54,10 @@ public class ReportServiceProxy implements ReportService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Report topic must not be blank");
         }
         String normalizedTopic = topic.trim();
+        if (normalizedTopic.length() > 200) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Report topic must not exceed 200 characters");
+        }
         Instant now = clock.instant();
 
         // Use a new window after 60 seconds (also handle backward clock changes).
@@ -70,8 +74,12 @@ public class ReportServiceProxy implements ReportService {
         windowRequests++;
 
         CacheEntry cached = cache.get(normalizedTopic);
-        if (cached != null && now.isBefore(cached.createdAt().plus(CACHE_TTL))) {
-            return cached.value();
+        if (cached != null) {
+            if (now.isBefore(cached.createdAt().plus(CACHE_TTL))) {
+                return cached.value();
+            }
+            // Remove expired entries before regenerating; avoid retaining stale data.
+            cache.remove(normalizedTopic);
         }
 
         // Holding the lock while loading ensures simultaneous callers don't
