@@ -77,6 +77,15 @@ class ReportServiceProxyTest {
     }
 
     @Test
+    void rejectsOversizedTopicsBeforeCallingRealService() {
+        ReportServiceProxy proxy = proxy(Clock.systemUTC());
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class, () -> proxy.generateReport("a".repeat(201)));
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
+        assertEquals(0, calls.get());
+    }
+
+    @Test
     void rejectsBlankTopicsWith400() {
         ReportServiceProxy proxy = proxy(Clock.systemUTC());
         ResponseStatusException error = assertThrows(
